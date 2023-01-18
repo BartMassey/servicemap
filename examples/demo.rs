@@ -10,6 +10,7 @@ fn main() {
     let count = map.invoke::<Counter>(counter_key, 8).unwrap();
     println!("{count}");
 
-    let join = map.invoke::<Joiner>(joiner_key, ("hello", "world")).unwrap();
+    let hello = "hello".to_string();
+    let join = map.invoke::<Joiner>(joiner_key, (&hello, "world")).unwrap();
     println!("{join}");
 }
