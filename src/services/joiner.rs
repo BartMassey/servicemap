@@ -10,18 +10,19 @@ impl Joiner {
         result.push_str(s2);
         result
     }
+}
 
-    pub fn package(self) -> ServiceEntry {
-        ServiceEntry(Box::new(self))
-    }
+impl ServicePackage for Joiner {
+    type CallArgs = (&'static str, &'static str);
+    type CallResult = String;
 
-    pub fn result(r: Box<dyn Any>) -> String {
-        *r.downcast::<String>().unwrap()
+    fn package() -> ServiceEntry {
+        ServiceEntry(Box::new(Self))
     }
 }
 
 impl Service for Joiner {
-    fn call(&mut self, args: &dyn Any) -> ServiceResult {
+    fn call(&mut self, args: &dyn Any) -> ServiceResult<Box<dyn Any>> {
         let args: (&str, &str) = *args.downcast_ref::<(&str, &str)>()
             .ok_or(ServiceMapError::IncorrectArgumentType)?;
         Ok(Box::new(self.join(args.0, args.1)))

@@ -8,19 +8,21 @@ impl Counter {
         self.0 += n;
         self.0
     }
+}
 
-    pub fn package(self) -> ServiceEntry {
-        ServiceEntry(Box::new(self))
-    }
+impl ServicePackage for Counter {
+    type CallArgs = usize;
+    type CallResult = usize;
 
-    pub fn result(r: Box<dyn Any>) -> usize {
-        *r.downcast::<usize>().unwrap()
+    fn package() -> ServiceEntry {
+        ServiceEntry(Box::new(Counter::default()))
     }
 }
 
 impl Service for Counter {
-    fn call(&mut self, args: &dyn Any) -> Box<dyn Any> {
-        let args: &usize = args.downcast_ref::<usize>().unwrap();
-        Box::new(self.increase(*args))
+    fn call(&mut self, args: &dyn Any) -> ServiceResult<Box<dyn Any>> {
+        let args: &usize = args.downcast_ref::<usize>()
+            .ok_or(ServiceMapError::IncorrectArgumentType)?;
+        Ok(Box::new(self.increase(*args)))
     }
 }

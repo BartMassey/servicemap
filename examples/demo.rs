@@ -3,15 +3,13 @@ use servicemap::*;
 fn main() {
     let mut map = ServiceMap::default();
 
-    let counter = Counter::default().package();
-    let counter_key = map.register(counter);
-    let joiner = Joiner::default().package();
-    let joiner_key = map.register(joiner);
+    let counter_key = map.register::<Counter>();
+    let joiner_key = map.register::<Joiner>();
 
-    let _ = map.invoke(counter_key, &7usize);
-    let count = map.invoke(counter_key, &8usize);
-    println!("{}", Counter::result(count));
+    let _ = map.invoke::<Counter>(counter_key, 7).unwrap();
+    let count = map.invoke::<Counter>(counter_key, 8).unwrap();
+    println!("{count}");
 
-    let join = map.invoke(joiner_key, &("hello", "world"));
-    println!("{}", Joiner::result(join));
+    let join = map.invoke::<Joiner>(joiner_key, ("hello", "world")).unwrap();
+    println!("{join}");
 }
