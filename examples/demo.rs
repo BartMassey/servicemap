@@ -6,11 +6,11 @@ fn main() {
     let counter_key = map.register::<Counter>();
     let joiner_key = map.register::<Joiner>();
 
-    let _ = map.invoke::<Counter>(counter_key, 7).unwrap();
-    let count = map.invoke::<Counter>(counter_key, 8).unwrap();
+    let _ = Counter::invoke(&mut map, counter_key, 7).unwrap();
+    let count = Counter::invoke(&mut map, counter_key, 8).unwrap();
     println!("{count}");
 
     let hello = "hello".to_string();
-    let join = map.invoke::<Joiner>(joiner_key, (&hello, "world")).unwrap();
+    let join = Joiner::invoke(&mut map, joiner_key, &hello, "world").unwrap();
     println!("{join}");
 }

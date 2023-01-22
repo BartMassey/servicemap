@@ -12,39 +12,27 @@ pub enum ServiceMapError {
     IncorrectArgumentType,
     #[error("incorrect service result type")]
     IncorrectResultType,
+    #[error("invalid ervice key")]
+    InvalidKey,
 }
 
 pub type ServiceResult<T> = Result<T, ServiceMapError>;
 
 pub trait ServicePackage {
-    type CallArgs: 'static;
-    type CallResult: 'static;
-
-    fn package() -> ServiceEntry;
+    fn package() -> Box<dyn Service>;
 }
 
-pub(crate) trait Service {
-    fn call(&mut self, args: &dyn Any) -> ServiceResult<Box<dyn Any>>;
+pub trait Service {
+    fn call(&mut self, args: &(dyn Any + 'static)) -> ServiceResult<Box<dyn Any + 'static>>;
 }
-
-pub struct ServiceEntry(Box<dyn Service>);
 
 #[derive(Default)]
-pub struct ServiceMap(Vec<ServiceEntry>);
+pub struct ServiceMap(Vec<Box<dyn Service>>);
 
 impl ServiceMap {
     pub fn register<P: ServicePackage>(&mut self) -> usize {
         let key = self.0.len();
         self.0.push(P::package());
         key
-    }
-
-    pub fn invoke<P: ServicePackage>(
-        &mut self,
-        key: usize,
-        args: P::CallArgs,
-    ) -> ServiceResult<Box<P::CallResult>> {
-        let result = self.0[key].0.call(&args)?;
-        result.downcast::<P::CallResult>().map_err(|_| ServiceMapError::IncorrectResultType)
     }
 }

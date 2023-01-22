@@ -10,21 +10,30 @@ impl Joiner {
         result.push_str(s2);
         result
     }
+
+    pub fn invoke<S1, S2>(map: &mut ServiceMap, key: usize, s1: S1, s2: S2) -> ServiceResult<String>
+    where
+        S1: Into<String>,
+        S2: Into<String>,
+    {
+        let entry = map.0.get_mut(key).ok_or(ServiceMapError::InvalidKey)?;
+        let result = entry.call(&(s1.into(), s2.into()))?;
+        let result = result.downcast::<String>()
+            .map_err(|_| ServiceMapError::IncorrectResultType)?;
+        Ok(*result)
+    }
 }
 
 impl ServicePackage for Joiner {
-    type CallArgs = (&'static str, &'static str);
-    type CallResult = String;
-
-    fn package() -> ServiceEntry {
-        ServiceEntry(Box::new(Self))
+    fn package() -> Box<dyn Service> {
+        Box::new(Self)
     }
 }
 
 impl Service for Joiner {
-    fn call(&mut self, args: &dyn Any) -> ServiceResult<Box<dyn Any>> {
-        let args: (&str, &str) = *args.downcast_ref::<(&str, &str)>()
+    fn call(&mut self, args: &(dyn Any)) -> ServiceResult<Box<dyn Any + 'static>> {
+        let args: &(String, String) = args.downcast_ref::<(String, String)>()
             .ok_or(ServiceMapError::IncorrectArgumentType)?;
-        Ok(Box::new(self.join(args.0, args.1)))
+        Ok(Box::new(self.join(&args.0, &args.1)))
     }
 }
