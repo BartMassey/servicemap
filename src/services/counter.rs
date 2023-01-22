@@ -20,7 +20,7 @@ impl Counter {
 
 impl ServicePackage for Counter {
     fn package() -> Box<dyn Service> {
-        Box::new(Counter::default())
+        <Box<Counter>>::default()
     }
 }
 
