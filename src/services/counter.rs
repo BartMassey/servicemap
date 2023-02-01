@@ -20,7 +20,7 @@ impl Counter {
     }
 
     /// Run the counter service and return the result.
-    pub fn invoke(map: &mut ServiceMap, key: usize, n: usize) -> ServiceResult<usize> {
+    pub fn invoke(map: &mut ServiceMap, key: ServiceKey, n: usize) -> ServiceResult<usize> {
         let counter = map.get_service::<Counter>(key)?;
         Ok(counter.increase(n))
     }

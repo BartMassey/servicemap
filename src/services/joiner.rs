@@ -20,7 +20,7 @@ impl Joiner {
     }
 
     /// Run the joiner service and return the result.
-    pub fn invoke<S1, S2>(map: &mut ServiceMap, key: usize, s1: S1, s2: S2) -> ServiceResult<String>
+    pub fn invoke<S1, S2>(map: &mut ServiceMap, key: ServiceKey, s1: S1, s2: S2) -> ServiceResult<String>
     where
         S1: AsRef<str>,
         S2: AsRef<str>,

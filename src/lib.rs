@@ -28,20 +28,24 @@ pub type ServiceResult<T> = Result<T, ServiceMapError>;
 #[derive(Default)]
 pub struct ServiceMap(Vec<Box<dyn Any + 'static>>);
 
+/// Type of service keys.
+#[derive(Clone, Copy)]
+pub struct ServiceKey(usize);
+
 impl ServiceMap {
     /// Register some boxed `package` object as a service in the
     /// map. Return the service key, which can be used to access
     /// this particular service object later.
-    pub fn register(&mut self, package: Box<dyn Any + 'static>) -> usize {
+    pub fn register(&mut self, package: Box<dyn Any + 'static>) -> ServiceKey {
         let key = self.0.len();
         self.0.push(package);
-        key
+        ServiceKey(key)
     }
 
     /// Find the service at `key` in this map and return a
     /// mutable reference to it.
-    pub(crate) fn get_service<T: 'static>(&mut self, key: usize) -> ServiceResult<&mut T> {
-        let entry = self.0.get_mut(key).ok_or(ServiceMapError::InvalidKey)?;
+    pub(crate) fn get_service<T: 'static>(&mut self, key: ServiceKey) -> ServiceResult<&mut T> {
+        let entry = self.0.get_mut(key.0).ok_or(ServiceMapError::InvalidKey)?;
         entry
             .downcast_mut::<T>()
             .ok_or(ServiceMapError::IncorrectAPIType)
