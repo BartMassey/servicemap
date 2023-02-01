@@ -11,21 +11,16 @@ impl Joiner {
         result
     }
 
+    pub fn package() -> Box<Joiner> {
+        <Box<Joiner>>::default()
+    }
+
     pub fn invoke<S1, S2>(map: &mut ServiceMap, key: usize, s1: S1, s2: S2) -> ServiceResult<String>
     where
         S1: AsRef<str>,
         S2: AsRef<str>,
     {
-        let entry = map.0.get_mut(key).ok_or(ServiceMapError::InvalidKey)?;
-        let joiner = entry
-            .downcast_mut::<Joiner>()
-            .ok_or(ServiceMapError::IncorrectAPIType)?;
+        let joiner = map.get_service::<Joiner>(key)?;
         Ok(joiner.join(s1.as_ref(), s2.as_ref()))
-    }
-}
-
-impl ServicePackage for Joiner {
-    fn package() -> Box<dyn Any + 'static> {
-        <Box<Joiner>>::default()
     }
 }

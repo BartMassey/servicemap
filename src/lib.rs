@@ -16,17 +16,20 @@ pub enum ServiceMapError {
 
 pub type ServiceResult<T> = Result<T, ServiceMapError>;
 
-pub trait ServicePackage {
-    fn package() -> Box<dyn Any + 'static>;
-}
-
 #[derive(Default)]
 pub struct ServiceMap(Vec<Box<dyn Any + 'static>>);
 
 impl ServiceMap {
-    pub fn register<P: ServicePackage>(&mut self) -> usize {
+    pub fn register(&mut self, package: Box<dyn Any + 'static>) -> usize {
         let key = self.0.len();
-        self.0.push(P::package());
+        self.0.push(package);
         key
+    }
+
+    pub(crate) fn get_service<T: 'static>(&mut self, key: usize) -> ServiceResult<&mut T> {
+        let entry = self.0.get_mut(key).ok_or(ServiceMapError::InvalidKey)?;
+        entry
+            .downcast_mut::<T>()
+            .ok_or(ServiceMapError::IncorrectAPIType)
     }
 }
