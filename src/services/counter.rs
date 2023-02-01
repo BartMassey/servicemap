@@ -11,25 +11,15 @@ impl Counter {
 
     pub fn invoke(map: &mut ServiceMap, key: usize, n: usize) -> ServiceResult<usize> {
         let entry = map.0.get_mut(key).ok_or(ServiceMapError::InvalidKey)?;
-        let result = entry.call(&n)?;
-        let result = *result
-            .downcast_ref::<usize>()
-            .ok_or(ServiceMapError::IncorrectResultType)?;
-        Ok(result)
+        let counter = entry
+            .downcast_mut::<Counter>()
+            .ok_or(ServiceMapError::IncorrectAPIType)?;
+        Ok(counter.increase(n))
     }
 }
 
 impl ServicePackage for Counter {
-    fn package() -> Box<dyn Service> {
+    fn package() -> Box<dyn Any + 'static> {
         <Box<Counter>>::default()
-    }
-}
-
-impl Service for Counter {
-    fn call(&mut self, args: &(dyn Any + 'static)) -> ServiceResult<Box<dyn Any + 'static>> {
-        let args: usize = *args
-            .downcast_ref::<usize>()
-            .ok_or(ServiceMapError::IncorrectArgumentType)?;
-        Ok(Box::new(self.increase(args)))
     }
 }

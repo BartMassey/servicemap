@@ -13,29 +13,19 @@ impl Joiner {
 
     pub fn invoke<S1, S2>(map: &mut ServiceMap, key: usize, s1: S1, s2: S2) -> ServiceResult<String>
     where
-        S1: Into<String>,
-        S2: Into<String>,
+        S1: AsRef<str>,
+        S2: AsRef<str>,
     {
         let entry = map.0.get_mut(key).ok_or(ServiceMapError::InvalidKey)?;
-        let result = entry.call(&(s1.into(), s2.into()))?;
-        let result = result
-            .downcast::<String>()
-            .map_err(|_| ServiceMapError::IncorrectResultType)?;
-        Ok(*result)
+        let joiner = entry
+            .downcast_mut::<Joiner>()
+            .ok_or(ServiceMapError::IncorrectAPIType)?;
+        Ok(joiner.join(s1.as_ref(), s2.as_ref()))
     }
 }
 
 impl ServicePackage for Joiner {
-    fn package() -> Box<dyn Service> {
-        Box::new(Self)
-    }
-}
-
-impl Service for Joiner {
-    fn call(&mut self, args: &(dyn Any)) -> ServiceResult<Box<dyn Any + 'static>> {
-        let args: &(String, String) = args
-            .downcast_ref::<(String, String)>()
-            .ok_or(ServiceMapError::IncorrectArgumentType)?;
-        Ok(Box::new(self.join(&args.0, &args.1)))
+    fn package() -> Box<dyn Any + 'static> {
+        <Box<Joiner>>::default()
     }
 }
